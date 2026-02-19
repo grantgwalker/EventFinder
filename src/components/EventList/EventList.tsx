@@ -46,10 +46,28 @@ const EventList: React.FC = () => {
           {events.map((event) => (
             <div key={event.id} className="event-card">
               <h3>{event.name}</h3>
-              <p className="event-date">{event.date}</p>
-              <p className="event-location">{event.location}</p>
+              <div className="event-info">
+                <p className="event-date">
+                  {event.date}
+                  {event.time && (
+                    <span className="event-time"> • {event.time}</span>
+                  )}
+                </p>
+                {event.price && <p className="event-price">💰 {event.price}</p>}
+                <p className="event-location">📍 {event.location}</p>
+              </div>
               {event.description && (
                 <p className="event-description">{event.description}</p>
+              )}
+              {event.url && (
+                <a
+                  href={event.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="event-link"
+                >
+                  View Details →
+                </a>
               )}
             </div>
           ))}
