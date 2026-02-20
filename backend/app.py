@@ -136,9 +136,22 @@ def scrape_gigs_comedy_events(date_str=None, num_listings=120):
                     elif text and text not in ['/', '']:
                         price_text = text
                 
-                # If no price found, set as "Free" or "N/A"
+                # If no price found, set as "N/A"
                 if not price_text:
                     price_text = 'N/A'
+                
+                if price_text.lower() in ['free', '£0', '£0.00', '0', '0.00']:
+                    price_text = '0'
+                
+                if date_text: 
+                    # Convert date to standard format YYYY-MM-DD if possible
+                    try:
+                        date_obj = datetime.strptime(date_text, '%a %d %b %y')
+                        # Reformat to YYYY-MM-DD
+                        date_text = date_obj.strftime('%Y-%m-%d')
+                    except ValueError:
+                        # If parsing fails, keep original text
+                        pass
                 
                 event = {
                     'id': idx,

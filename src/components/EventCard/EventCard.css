@@ -1,34 +1,3 @@
-.event-list {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.event-list h2 {
-  color: #333;
-  margin-bottom: 24px;
-  font-size: 2rem;
-}
-
-.loading,
-.error {
-  text-align: center;
-  padding: 40px;
-  font-size: 1.2rem;
-}
-
-.error {
-  color: #d32f2f;
-  background-color: #ffebee;
-  border-radius: 8px;
-  margin: 20px;
-}
-
-.events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
 
 .event-card {
   background: white;
