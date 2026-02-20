@@ -47,23 +47,65 @@
 
 .event-card h3 {
   color: #1976d2;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
   font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+.event-info {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
 }
 
 .event-date {
   color: #666;
   font-weight: 500;
-  margin: 8px 0;
+  margin: 4px 0;
+  font-size: 0.95rem;
+}
+
+.event-time {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.event-price {
+  color: #2e7d32;
+  font-weight: 600;
+  margin: 4px 0;
+  font-size: 0.95rem;
 }
 
 .event-location {
   color: #888;
-  margin: 8px 0;
+  margin: 4px 0;
+  font-size: 0.9rem;
 }
 
 .event-description {
   color: #555;
   margin-top: 12px;
   line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.event-link {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.event-link:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
