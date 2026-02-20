@@ -15,13 +15,22 @@ from webdriver_manager.chrome import ChromeDriverManager
 app = Flask(__name__)
 CORS(app)
 
-def scrape_gigs_comedy_events(date_str=None, num_listings=120):
+event_category_dictionary = {
+    'gigs': '1',
+    'concerts': '6',
+    'nightlife': '12',
+    'exhibitions': '4',
+    'all': '0',
+}
+
+def scrape_gigs_comedy_events(date_str=None, num_listings=1000, event_category='gigs'):
     """
     Scrape Gigs & Comedy events from Daily Info.
     
     Args:
         date_str: Date in format 'YYYY-MM-DD'. Defaults to today.
         num_listings: Number of listings to load (default: 120)
+        event_category: Category of events to scrape (default: 'gigs-comedy')
     
     Returns:
         List of event dictionaries
@@ -146,6 +155,7 @@ def scrape_gigs_comedy_events(date_str=None, num_listings=120):
                 if date_text: 
                     # Convert date to standard format YYYY-MM-DD if possible
                     try:
+                        date_text = date_text.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
                         date_obj = datetime.strptime(date_text, '%a %d %b %y')
                         # Reformat to YYYY-MM-DD
                         date_text = date_obj.strftime('%Y-%m-%d')
@@ -161,7 +171,7 @@ def scrape_gigs_comedy_events(date_str=None, num_listings=120):
                     'location': location,
                     'description': description[:200],
                     'price': price_text,
-                    'category': 'Gigs & Comedy',
+                    'category': 'gigs',
                     'url': event_url
                 }
                 
