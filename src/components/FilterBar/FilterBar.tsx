@@ -135,9 +135,9 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFiltersSubmit }) => {
           >
             <option value="all">All</option>
             <option value="gigs">Gigs & Comedy</option>
-            <option value="sports">Concerts</option>
-            <option value="arts">Nightlife</option>
-            <option value="family">Exhibitions</option>
+            <option value="concerts">Concerts</option>
+            <option value="nightlife">Nightlife</option>
+            <option value="exhibitions">Exhibitions</option>
           </select>
         </div>
 
