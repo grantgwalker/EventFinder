@@ -69,58 +69,82 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFiltersSubmit }) => {
 
   return (
     <form className="filter-bar" onSubmit={handleSubmit}>
-      <h2>Filter Bar</h2>
+      <h2>Filter Events</h2>
 
-      <label htmlFor="price">Price:</label>
-      <select
-        id="price"
-        name="price"
-        value={filters.price}
-        onChange={handleFilterChange}
-      >
-        <option value="all">All</option>
-        <option value="0">Free</option>
-        <option value="paid">Paid</option>
-      </select>
+      <div className="filters-container">
+        <div className="filter-group">
+          <label htmlFor="price">Price:</label>
+          <select
+            id="price"
+            name="price"
+            value={filters.price}
+            onChange={handleFilterChange}
+          >
+            <option value="all">All</option>
+            <option value="0">Free</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
 
-      <label htmlFor="date">Date:</label>
-      <select
-        id="dateMode"
-        name="dateMode"
-        value={dateMode}
-        onChange={handleDateModeChange}
-      >
-        <option value="all">All</option>
-        <option value="custom">Specific Date</option>
-      </select>
+        <div className="filter-group date-filter">
+          <label htmlFor="date">Date:</label>
+          <div className="date-controls">
+            <label className="toggle-label">
+              <input
+                type="checkbox"
+                checked={dateMode === "custom"}
+                onChange={(e) => {
+                  const mode = e.target.checked ? "custom" : "all";
+                  setDateMode(mode);
+                  if (mode === "all") {
+                    setFilters((prevFilters) => ({
+                      ...prevFilters,
+                      date: "all",
+                    }));
+                    setCustomDate("");
+                  } else {
+                    setFilters((prevFilters) => ({
+                      ...prevFilters,
+                      date: customDate,
+                    }));
+                  }
+                }}
+              />
+              <span className="toggle-text">Specific Date</span>
+            </label>
+            {dateMode === "custom" && (
+              <input
+                type="date"
+                id="customDate"
+                name="customDate"
+                value={customDate}
+                onChange={handleCustomDateChange}
+                className="date-input"
+              />
+            )}
+          </div>
+        </div>
 
-      {dateMode === "custom" && (
-        <input
-          type="date"
-          id="customDate"
-          name="customDate"
-          value={customDate}
-          onChange={handleCustomDateChange}
-        />
-      )}
+        <div className="filter-group">
+          <label htmlFor="category">Category:</label>
+          <select
+            id="category"
+            name="category"
+            value={filters.category}
+            onChange={handleFilterChange}
+          >
+            <option value="all">All</option>
+            <option value="gigs">Gigs & Comedy</option>
+            <option value="sports">Concerts</option>
+            <option value="arts">Nightlife</option>
+            <option value="family">Exhibitions</option>
+          </select>
+        </div>
 
-      <label htmlFor="category">Category:</label>
-      <select
-        id="category"
-        name="category"
-        value={filters.category}
-        onChange={handleFilterChange}
-      >
-        <option value="all">All</option>
-        <option value="gigs">Gigs & Comedy</option>
-        <option value="sports">Concerts</option>
-        <option value="arts">Nightlife</option>
-        <option value="family">Exhibitions</option>
-      </select>
-
-      <button type="submit">Apply Filters</button>
-
-      <div>Currently selected filters: {JSON.stringify(filters)}</div>
+        <button type="submit" className="apply-button">
+          Apply Filters
+        </button>
+      </div>
     </form>
   );
 };

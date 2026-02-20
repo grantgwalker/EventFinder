@@ -59,15 +59,14 @@ const App: React.FC = () => {
       <main>
         {/* Filter Bar to get user input and fetch filter criteria. FilterBar component passes events to list */}
         <FilterBar onFiltersSubmit={handleFiltersSubmit} />
-        {activeFilters && (
-          <div className="active-filters">
-            <p>Active Filters: {JSON.stringify(activeFilters)}</p>
-          </div>
-        )}
         {/* Of the fetched filtered events, We have an event List, list is responsible for displaying them */}
         {/* The Event List is comprised of Event Cards, rendering and the design of each */}
         <div className="event-list">
-          <h2>Upcoming Events</h2>
+          <h2>Upcoming Events for:</h2>
+          <h3>
+            Price: {activeFilters?.price} | Date: {activeFilters?.date} |
+            Category: {activeFilters?.category}
+          </h3>
           {events.length === 0 ? (
             <p>No events found.</p>
           ) : (

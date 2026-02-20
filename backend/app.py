@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -22,6 +23,116 @@ event_category_dictionary = {
     'exhibitions': '4',
     'all': '0',
 }
+
+def extract_first_time_to_24hr(time_str):
+    """
+    Extract the first time from a string and convert to 24-hour format.
+    Handles formats like:
+    - '7.00 pm', '7pm', '11.30 AM' (periods or colons for minutes)
+    - '19.00', '14.30' (already 24-hour)
+    - 'Doors 7pm, music 7.40pm' (extracts '7pm')
+    - '8 - 12pm', '7.30-9pm' (range format, extracts first time)
+    - '11-3am' (implies 11pm-3am, extracts '23:00')
+    
+    Returns:
+        tuple: (formatted_time_24hr, sort_time)
+        - formatted_time_24hr: Human-readable 24-hour format (e.g., "19:00")
+        - sort_time: Integer minutes from midnight for sorting (e.g., 1140 for 19:00)
+    """
+    if not time_str:
+        return ('', 9999)
+    
+    time_lower = time_str.lower().strip()
+    
+    # Pattern 1a: Time range with minutes on start (e.g., "7.30-9pm", "11.30-1am")
+    # Extract: start_hour, start_minutes, end_hour, am/pm
+    range_with_minutes = re.search(r'(\d{1,2})[:.](\d{2})\s*[-–to]+\s*(\d{1,2})(?:[:.]?\d{2})?\s*(am|pm)', time_lower)
+    if range_with_minutes:
+        start_hour = int(range_with_minutes.group(1))
+        start_minutes = int(range_with_minutes.group(2))
+        end_hour = int(range_with_minutes.group(3))
+        period = range_with_minutes.group(4)
+        
+        # Special case: "11.30-3am" implies "11:30pm-3am"
+        if period == 'am' and start_hour > end_hour:
+            period = 'pm'
+        
+        # Convert to 24-hour
+        hour = start_hour
+        if period == 'pm' and hour != 12:
+            hour += 12
+        elif period == 'am' and hour == 12:
+            hour = 0
+        
+        sort_time = hour * 60 + start_minutes
+        return (f"{hour:02d}:{start_minutes:02d}", sort_time)
+    
+    # Pattern 1b: Time range without minutes on start (e.g., "8-12pm", "11-3am")
+    # Extract: start_hour, end_hour, am/pm
+    range_without_minutes = re.search(r'(\d{1,2})\s*[-–to]+\s*(\d{1,2})(?:[:.]?\d{2})?\s*(am|pm)', time_lower)
+    if range_without_minutes:
+        start_hour = int(range_without_minutes.group(1))
+        end_hour = int(range_without_minutes.group(2))
+        period = range_without_minutes.group(3)
+        
+        # Special case: "11-3am" implies "11pm-3am"
+        if period == 'am' and start_hour > end_hour:
+            period = 'pm'
+        
+        # Convert to 24-hour
+        hour = start_hour
+        if period == 'pm' and hour != 12:
+            hour += 12
+        elif period == 'am' and hour == 12:
+            hour = 0
+        
+        sort_time = hour * 60
+        return (f"{hour:02d}:00", sort_time)
+    
+    # Pattern 2: Time with minutes and am/pm (e.g., "7.30 pm", "11.45am")
+    time_with_minutes = re.search(r'(\d{1,2})[:.](\d{2})\s*(am|pm)', time_lower)
+    if time_with_minutes:
+        hour = int(time_with_minutes.group(1))
+        minutes = int(time_with_minutes.group(2))
+        period = time_with_minutes.group(3)
+        
+        # Convert to 24-hour
+        if period == 'pm' and hour != 12:
+            hour += 12
+        elif period == 'am' and hour == 12:
+            hour = 0
+        
+        sort_time = hour * 60 + minutes
+        return (f"{hour:02d}:{minutes:02d}", sort_time)
+    
+    # Pattern 3: Time without minutes but with am/pm (e.g., "7pm", "11 am")
+    time_without_minutes = re.search(r'(\d{1,2})\s*(am|pm)', time_lower)
+    if time_without_minutes:
+        hour = int(time_without_minutes.group(1))
+        period = time_without_minutes.group(2)
+        
+        # Convert to 24-hour
+        if period == 'pm' and hour != 12:
+            hour += 12
+        elif period == 'am' and hour == 12:
+            hour = 0
+        
+        sort_time = hour * 60
+        return (f"{hour:02d}:00", sort_time)
+    
+    # Pattern 4: 24-hour format (e.g., "14.30", "19.00")
+    time_24hr = re.search(r'(\d{1,2})[:.](\d{2})(?!\s*[ap]m)', time_lower)
+    if time_24hr:
+        hour = int(time_24hr.group(1))
+        minutes = int(time_24hr.group(2))
+        
+        # Validate it's actually 24-hour (hour >= 13 or hour == 0)
+        if hour >= 13 or hour == 0:
+            sort_time = hour * 60 + minutes
+            return (f"{hour:02d}:{minutes:02d}", sort_time)
+    
+    # If no pattern matched, return original with high sort value
+    return (time_str, 9999)
 
 def scrape_gigs_comedy_events(date_str=None, num_listings=1000, event_category='gigs'):
     """
@@ -163,11 +274,16 @@ def scrape_gigs_comedy_events(date_str=None, num_listings=1000, event_category='
                         # If parsing fails, keep original text
                         pass
                 
+                # Extract and normalize time to 24-hour format
+                formatted_time, sort_time = extract_first_time_to_24hr(time_text)
+                
                 event = {
                     'id': idx,
                     'name': title_text,
                     'date': date_text,
-                    'time': time_text,
+                    'time': formatted_time,
+                    'time_raw': time_text,  # Keep original for reference
+                    'sort_time': sort_time,  # For sorting purposes
                     'location': location,
                     'description': description[:200],
                     'price': price_text,
@@ -176,13 +292,21 @@ def scrape_gigs_comedy_events(date_str=None, num_listings=1000, event_category='
                 }
                 
                 events.append(event)
-                print(f"Parsed event {idx}: {title_text}")
+                print(f"Parsed event {idx}: {title_text} at {formatted_time}")
                 
             except Exception as e:
                 print(f"Error parsing event item {idx}: {e}")
                 continue
         
-        print(f"Successfully parsed {len(events)} events")
+        # Sort events by date first, then by time (earliest first)
+        # Date strings in YYYY-MM-DD format sort correctly
+        events.sort(key=lambda x: (x.get('date', '9999-12-31'), x.get('sort_time', 9999)))
+        
+        # Re-assign IDs after sorting to maintain order
+        for idx, event in enumerate(events, start=1):
+            event['id'] = idx
+        
+        print(f"Successfully parsed and sorted {len(events)} events")
         return events
         
     except Exception as e:

@@ -3,6 +3,7 @@ export interface Event {
   name: string;
   date: string;
   time?: string;
+  time_raw?: string;
   location: string;
   description?: string;
   price?: string;

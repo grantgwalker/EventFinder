@@ -15,7 +15,15 @@ const EventCard: React.FC<Event> = (event) => {
             day: "numeric",
             year: "numeric",
           })}
-          {event.time && <span className="event-time"> • {event.time}</span>}
+          {event.time && (
+            <span className="event-time"> • Formatted Time: {event.time}</span>
+          )}
+          {event.time_raw && (
+            <span className="event-time-raw">
+              {" "}
+              (Original Time: {event.time_raw})
+            </span>
+          )}
         </p>
         {event.price && event.price === "0" && (
           <p className="event-price">💰 Free</p>
