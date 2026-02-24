@@ -5,9 +5,15 @@ const API_BASE_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 export const eventService = {
-  async getEvents(): Promise<Event[]> {
+  async getEvents(filters?: Record<string, string>): Promise<Event[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/events`);
+      console.log("Fetching events with filters:", filters);
+
+      // Fetch all events with optional filters
+      const response = await axios.get(`${API_BASE_URL}/events`, {
+        params: filters, // Pass filters as query parameters
+      });
+
       return response.data.events || [];
     } catch (error) {
       console.error("Error fetching events:", error);

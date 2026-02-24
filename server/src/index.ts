@@ -20,7 +20,14 @@ app.get("/api/health", (req: Request, res: Response) => {
 // Proxy route to Python backend
 app.get("/api/events", async (req: Request, res: Response) => {
   try {
-    const response = await fetch("http://localhost:8000/api/events");
+    // send filters as query parameters to Python backend
+    const queryParams = new URLSearchParams(
+      req.query as Record<string, string>,
+    ).toString();
+    const url = `http://localhost:8000/api/events?${queryParams}`;
+    console.log("Proxying request to Python backend:", url);
+    const response = await fetch(url);
+
     const data = await response.json();
     res.json(data);
   } catch (error) {

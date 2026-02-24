@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./FilterBar.css";
 
 export interface Filters {
@@ -9,19 +9,39 @@ export interface Filters {
 
 interface FilterBarProps {
   onFiltersSubmit: (filters: Filters) => void;
+  initialFilters?: Filters;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ onFiltersSubmit }) => {
+const FilterBar: React.FC<FilterBarProps> = ({
+  onFiltersSubmit,
+  initialFilters,
+}) => {
   // Use state to manage filters
-  const [filters, setFilters] = useState<Filters>({
-    price: "0",
-    date: "all",
-    category: "gigs",
-  });
+  const [filters, setFilters] = useState<Filters>(
+    initialFilters || {
+      price: "0",
+      date: "all",
+      category: "gigs",
+    },
+  );
 
   // State to track if using custom date
   const [dateMode, setDateMode] = useState<"all" | "custom">("all");
   const [customDate, setCustomDate] = useState<string>("");
+
+  // Update filters when initialFilters prop changes
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(initialFilters);
+      if (initialFilters.date !== "all") {
+        setDateMode("custom");
+        setCustomDate(initialFilters.date);
+      } else {
+        setDateMode("all");
+        setCustomDate("");
+      }
+    }
+  }, [initialFilters]);
 
   // Handle changes to filter inputs
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

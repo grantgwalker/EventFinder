@@ -134,7 +134,7 @@ def extract_first_time_to_24hr(time_str):
     # If no pattern matched, return original with high sort value
     return (time_str, 9999)
 
-def scrape_gigs_comedy_events(date_str=None, num_listings=1000, event_category='gigs'):
+def scrape_events(date_str=None, num_listings=1000, event_category='gigs'):
     """
     Scrape Gigs & Comedy events from Daily Info.
     
@@ -149,12 +149,14 @@ def scrape_gigs_comedy_events(date_str=None, num_listings=1000, event_category='
     if date_str is None:
         date_str = datetime.now().strftime('%Y-%m-%d')
     
+    param_category = event_category_dictionary.get(event_category, '1')  # Default to Gigs & Comedy
+    print(f"Scraping events for date: {date_str}, category: {param_category}")
     # Category "1" is for Gigs & Comedy
     params = {
         'selectedDate': date_str,
         'sortBy': 'name',
         'numListingsLoaded': num_listings,
-        'selectedCategory': '1',  # Gigs & Comedy
+        'selectedCategory': param_category,
         'selectedTagIds': '',
         'tagMatchingStyle': ''
     }
@@ -287,12 +289,12 @@ def scrape_gigs_comedy_events(date_str=None, num_listings=1000, event_category='
                     'location': location,
                     'description': description[:200],
                     'price': price_text,
-                    'category': 'gigs',
+                    'category': event_category,
                     'url': event_url
                 }
                 
                 events.append(event)
-                print(f"Parsed event {idx}: {title_text} at {formatted_time}")
+                #print(f"Parsed event {idx}: {title_text} at {formatted_time}")
                 
             except Exception as e:
                 print(f"Error parsing event item {idx}: {e}")
@@ -328,28 +330,36 @@ def health_check():
     })
 
 @app.route('/api/events', methods=['GET'])
-def get_events():
+@app.route('/api/events/<category>', methods=['GET'])
+@app.route('/api/events/<category>/<date>', methods=['GET'])
+def get_events(category=None, date=None):
     """
     Get events from Daily Info.
-    Query params:
-    - date: Date in format YYYY-MM-DD (defaults to today)
-    - category: Category ID (defaults to gigs-comedy)
-    """
-    date_param = request.args.get('date', None)
-    category = request.args.get('category', 'gigs-comedy')
     
-    if category == 'gigs-comedy':
-        print(f"Fetching Gigs & Comedy events for date: {date_param or 'today'}")
-        events = scrape_gigs_comedy_events(date_param)
-    else:
-        # For now, only Gigs & Comedy is implemented
-        events = []
+    Route params:
+    - category: Event category (gigs, concerts, nightlife, exhibitions, all) - defaults to 'gigs'
+    - date: Date in format YYYY-MM-DD - defaults to today
+    
+    Also supports query params:
+    - ?date=YYYY-MM-DD
+    - ?category=gigs
+    """
+    # Route params take precedence over query params
+    if not category:
+        category = request.args.get('category', 'gigs')  # Default to 'gigs'
+    if not date:
+        date = request.args.get('date', None)
+    
+    print(f"Received request for events with date: {date} and category: {category}")
+    
+    print(f"Fetching {category} events for date: {date or 'today'}")
+    events = scrape_events(date, event_category=category)
     
     return jsonify({
         'events': events,
         'count': len(events),
         'category': category,
-        'date': date_param or datetime.now().strftime('%Y-%m-%d')
+        'date': date or datetime.now().strftime('%Y-%m-%d')
     })
 
 @app.route('/api/events/<int:event_id>', methods=['GET'])
