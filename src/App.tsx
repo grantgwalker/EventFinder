@@ -65,6 +65,9 @@ const App: React.FC = () => {
 
     // Filter the allEvents array based on filters
     const filtered = allEvents.filter((event) => {
+      // TODO: Implement actual filtering logic based on price, date, and category
+      // if all then match everything
+      // if paid then match events !== 0
       const priceMatch =
         filters.price === "all" || event.price == filters.price;
       const dateMatch = filters.date === "all" || event.date == filters.date;
